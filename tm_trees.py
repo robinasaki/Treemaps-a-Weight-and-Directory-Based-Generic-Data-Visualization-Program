@@ -664,7 +664,10 @@ class TMTree:
         >>> s1.is_displayed_tree_leaf()
         True
         """
-        # TODO: (Task 4) Implement this method
+        if self._subtrees == []:
+            return self
+        # TODO
+
 
     def expand_all(self) -> TMTree:
         """
