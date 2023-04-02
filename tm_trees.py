@@ -104,8 +104,17 @@ def path_to_nested_tuple(path: str) -> tuple[str, int | list]:
     >>> rslt[1]
     [('images', [('Cats.pdf', 17)]), ('reading.md', 7)]
     """
-    # TODO: (Task 5) Implement this function
-
+    lst = []
+    if os.path.isfile(path):
+        #  if it's file return name and size
+        return os.path.basename(path), os.path.getsize(path) + 1
+    # order the path's
+    x = ordered_listdir(path)
+    ss = []
+    for i in x:
+        ith_path = os.path.join(path, i)  # getting the path for traverse
+        ss.append(path_to_nested_tuple(ith_path))
+    return (os.path.basename(path), ss)
 
 def ordered_listdir(path: str) -> list[str]:
     """
@@ -133,7 +142,21 @@ def dir_tree_from_nested_tuple(obj: tuple[str, int | list]) -> DirectoryTree:
 
     See the DirectoryTree's doctest examples for sample usage.
     """
-    # TODO: (Task 5) Implement this function
+    name, contents = obj
+    tree = DirectoryTree(name)
+    tree.data_size = 1
+    for item in contents:
+        if isinstance(item[1], list):
+            subdir = dir_tree_from_nested_tuple(item)
+            tree.add_subtree(subdir)
+            tree.data_size += subdir.data_size
+        else:
+            filename, size = item
+            file_tree = FileTree(filename, size)
+            tree.add_subtree(file_tree)
+            tree.data_size += size
+    return tree
+
 
 
 # provided, do not modify this helper function
@@ -1001,6 +1024,23 @@ class FileTree:
     """
     # TODO: (Task) 5 override or extend any methods as needed
     # Hint: you should only have to write a fairly small amount of code here.
+    def __init__(self, name: str, data_size) -> None:
+        TMTree.__init__(self, name, [], data_size)
+
+    def add_subtree(self, subtree: TMTree) -> None:
+        """
+        Add the given subtree to this tree as a child node.
+
+        """
+        subtree._parent_tree = self
+        self._subtrees.append(subtree)
+        self.data_size += subtree.data_size
+
+    def change_size(self, factor: float) -> None:
+        TMTree.change_size(factor)
+
+    def get_path_string(self) -> str:
+        return TMTree.get_path_string(self)
 
 
 # TODO: (Task 5) make this class inherit from another class
@@ -1094,7 +1134,24 @@ class DirectoryTree:
     #  parent class, based on the docstring examples AND any behaviour
     #  specified in the handout.
     # Hint: you should only have to write a fairly small amount of code here.
+    def __init__(self, name: str) -> None:
+        """ initialize new DirectoryTree"""
+        TMTree.__init__(self, name, [], 1)
 
+    def add_subtree(self, subtree: TMTree) -> None:
+        """
+        adds subtree to the self._subtrees
+
+        """
+        subtree._parent_tree = self
+        self._subtrees.append(subtree)
+
+    def change_size(self, factor: float) -> None:
+        raise OperationNotSupportedError
+
+    def get_path_string(self) -> str:
+        lst = self._get_ancestors()
+        return TMTree.get_path_string(self)
 
 class ChessTree(TMTree):
     """
