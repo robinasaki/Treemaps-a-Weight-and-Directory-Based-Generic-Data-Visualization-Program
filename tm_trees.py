@@ -441,6 +441,15 @@ class TMTree:
         'C(7) None'
         >>> d1.get_path_string()
         'C | C2 | C1(5) None'
+        >>> td = TMTree('d', [], 1)
+        >>> tc = TMTree('c', [], 1)
+        >>> tj = TMTree('j', [], 1)
+        >>> tk = TMTree('k', [tj], 1)
+        >>> te = TMTree('e', [tk], 1)
+        >>> tb = TMTree('b', [te], 1)
+        >>> ta = TMTree('a', [tb, tc, td], 1)
+        >>> tj.get_path_string()
+        'a | b | e | k | j(1) None'
         """
         res = ''
         tree_lst = reversed(self._get_ancestors())
@@ -754,10 +763,11 @@ class TMTree:
             parent._expanded = False
             for t in parent._get_children():
                 t._expanded = False
-            parent.get_rectangles()
-            parent._colour = (randint(0,255), randint(0,255), randint(0,255))
+            parent.update_rectangles(parent.rect)
+            #parent._colour = (randint(0,255), randint(0,255), randint(0,255))
             return parent
         else:
+            #self.update_rectangles(self.rect)
             return self
 
     def collapse_all(self) -> TMTree:
@@ -783,14 +793,14 @@ class TMTree:
         True
         """
         if self._parent_tree:
-            curr = self._parent_tree
+            curr = self
             while curr:
                 curr.collapse()
                 if curr._parent_tree:
                     curr = curr._parent_tree
-                    curr.get_rectangles()
+                    curr.update_rectangles(curr.rect)
                 else:
-                    curr.get_rectangles()
+                    curr.update_rectangles(curr.rect)
                     return curr
         return self
 
@@ -854,7 +864,19 @@ class TMTree:
         >>> s2.is_displayed_tree_leaf()
         True
         """
-
+        if self is destination:
+            return
+        elif (not self.is_displayed_tree_leaf()) or\
+            (not destination.is_displayed_tree_leaf()):
+            return
+        else:
+            parent = self._parent_tree
+            parent._subtrees.remove(self)
+            destination._subtrees.append(self)
+            destination.data_size += self.data_size
+            destination.expand()
+            destination._parent_tree.update_rectangles(destination._parent_tree.rect)
+            self._parent_tree = destination
 
     def change_size(self, factor: float) -> None:
         """
