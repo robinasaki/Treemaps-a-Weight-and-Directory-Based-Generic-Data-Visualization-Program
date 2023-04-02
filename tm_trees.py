@@ -24,7 +24,7 @@ of several subclasses to represent specific types of data.
 """
 from __future__ import annotations
 import os
-import math  # You can remove this math import if you don't end up using it.
+import math
 from random import randint
 from typing import Optional
 import webbrowser
@@ -940,9 +940,15 @@ class TMTree:
                sum(t.data_size for t in self._parent_tree._subtrees)
         # yes subtrees
         if self._subtrees != []:
+            # comp: int(sum of all subtrees data_size)
             comp = int(sum([t.data_size for t in self._subtrees]))
-            if int(factor * self.data_size) < comp:
-                self.data_size = comp
+            if factor < 0:
+                if factor + math.floor(factor * self.data_size) < comp:
+                    self.data_size = comp
+                else:
+                    self.data_size = self.data_size + math.floor(self.data_size * factor)
+            else:
+                self.data_size = self.data_size + math.ceil(self.data_size * factor)
         # no subtree
         else:
             if self.data_size * factor < 0:
