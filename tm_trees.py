@@ -308,7 +308,10 @@ class TMTree:
         self._name = name
         self._subtrees = subtrees
         self._colour = (randint(0,255), randint(0,255), randint(0,255))
-        self._expanded = False
+        if self._subtrees != []:
+            self._expanded = True
+        else:
+            self._expanded = False
         self._parent_tree = None
         # public attributes
         self.rect = None
@@ -407,8 +410,19 @@ class TMTree:
         True
         >>> t2.is_displayed_tree_leaf()
         False
+        >>> d1 = TMTree('C1', [], 5)
+        >>> d2 = TMTree('C2', [d1], 1)
+        >>> d1.is_displayed_tree_leaf()
+        True
+        >>> d2.is_displayed_tree_leaf()
+        False
         """
-        return self._subtrees == []
+        if self._expanded is False:
+            if not self._parent_tree:
+                return True
+            elif self._parent_tree._expanded is True:
+                return True
+        return False
 
     # Methods for the string representation
     def get_path_string(self) -> str:
@@ -580,7 +594,7 @@ class TMTree:
         # [(<rect>, <colour>), (<rect>, <colour>), ...]
         if self.data_size == 0:
             return []
-        elif self.is_displayed_tree_leaf():
+        elif self._subtrees == []:
             return [(self.rect, self._colour)]
         lst = []
         for t in self._get_children():
@@ -624,22 +638,18 @@ class TMTree:
         """
         # <pos>: (x, y)
         # <rect>: (x, y, width, height)
-        comp = {obj.rect: obj for obj in self._subtrees}
+        comp = {obj.rect: obj for obj in self._get_children()}
+        lst = []
         for i in comp.keys():
-            if i[0] <= pos[0] <= i[2] and\
-                i[1] <= pos[1] <= i[3]:
-                return comp[i]
-        if self.rect[0] <= pos[0] <= self.rect[2] and\
-            self.rect[1] <= pos[0] <= self.rect[3]:
+            if i[0] <= pos[0] <= (i[0] + i[2]) and\
+                i[1] <= pos[1] <= (i[1] + i[3]):
+                lst.append(comp[i])
+                return lst[-1]
+        if self.rect[0] <= pos[0] <= (self.rect[0] + self.rect[2]) and\
+            self.rect[1] <= pos[0] <= (self.rect[1] + self.rect[3]):
             return self
         return None
 
-
-    # TODO: (Task 4) Write the bodies of methods expand, expand_all, collapse,
-    #       collapse_all, move, change_size, and test the displayed-tree
-    #       functionality for the methods from Tasks 2 and 3 if you haven't
-    #       done so yet, since you can now expand and collapse the
-    #       displayed-tree.
     def expand(self) -> TMTree:
         """
         Set this tree to be expanded, and return its first (leftmost) subtree.
@@ -664,10 +674,11 @@ class TMTree:
         >>> s1.is_displayed_tree_leaf()
         True
         """
+        # no subtree case
         if self._subtrees == []:
             return self
-        # TODO
-
+        self._expanded = True
+        return self._subtrees[0]
 
     def expand_all(self) -> TMTree:
         """
@@ -694,6 +705,8 @@ class TMTree:
         False
         >>> d2.is_displayed_tree_leaf()
         False
+        >>> d3.is_displayed_tree_leaf()
+        True
         >>> d3.expand_all() is d1
         True
         >>> d1.is_displayed_tree_leaf()
@@ -701,7 +714,13 @@ class TMTree:
         >>> d2.is_displayed_tree_leaf()
         False
         """
-        # TODO: (Task 4) Implement this method
+        if self._subtrees != []:
+            res = self._get_children()[-1]
+            self._expanded = True
+            for t in self._subtrees:
+                t.expand_all()
+            return res
+        return self
 
     def collapse(self) -> TMTree:
         """
@@ -730,7 +749,11 @@ class TMTree:
         >>> d2.is_displayed_tree_leaf()
         True
         """
-        # TODO: (Task 4) Implement this method
+        if not self._parent_tree:
+            return self
+        curr = self._parent_tree
+        curr._expanded = False
+        return curr
 
     def collapse_all(self) -> TMTree:
         """
@@ -754,7 +777,14 @@ class TMTree:
         >>> d3.is_displayed_tree_leaf()
         True
         """
-        # TODO: (Task 4) Implement this method
+        root = self._get_ancestors()[-1]
+        curr = self._parent_tree
+        while curr:
+            curr._expanded = False
+            if curr._parent_tree:
+                curr = curr._parent_tree
+            else:
+                return root
 
     def move(self, destination: TMTree) -> None:
         """
@@ -816,7 +846,14 @@ class TMTree:
         >>> s2.is_displayed_tree_leaf()
         True
         """
-        # TODO: (Task 4)  Implement this method
+        parent = self._parent_tree
+        parent._subtrees.remove(self)
+
+        destination._subtrees.append(self)
+        self._parent_tree = destination
+        destination._expanded = True
+        destination.data_size += self.data_size
+        parent.update_rectangles(parent.rect)
 
     def change_size(self, factor: float) -> None:
         """
@@ -871,8 +908,21 @@ class TMTree:
         >>> s2.rect
         (0, 100, 100, 100)
         """
-        # TODO: (Task 4) Implement this method
+        temp = self._parent_tree.data_size - sum(t.data_size for t in self._parent_tree._subtrees)
+        if self._subtrees != []:
+            if factor * self.data_size < sum([t.data_size
+                                              for t in self._subtrees]):
+                self.data_size = int(sum([t.data_size for t in self._subtrees]))
+        else:
+            self.data_size = self.data_size + int(self.data_size * factor)
 
+        if self.data_size < 1:
+            self.data_size = 1
+
+        self._parent_tree.data_size = temp + sum(t.data_size for t in self._parent_tree._subtrees)
+
+        # update rect
+        self._parent_tree.update_rectangles(self._parent_tree.rect)
 
 ######################
 # subclasses of TMTree
