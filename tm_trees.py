@@ -995,7 +995,7 @@ class TMTree:
 ######################
 
 # TODO: (Task 5) make this class inherit from another class
-class FileTree:
+class FileTree(TMTree):
     """
     A tree representation of a file in a file system, for use with our
     treemap visualizer.
@@ -1044,7 +1044,7 @@ class FileTree:
 
 
 # TODO: (Task 5) make this class inherit from another class
-class DirectoryTree:
+class DirectoryTree(TMTree):
     """A tree representation of a directory in a file system for use with
     our treemap visualizer.
 
