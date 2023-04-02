@@ -930,22 +930,36 @@ class TMTree:
         11
         >>> s2.rect
         (0, 100, 100, 100)
+        >>> s2.change_size(1/5)
+        >>> s2.data_size
+        6
+        >>> t3.data_size
+        12
         """
-        temp = self._parent_tree.data_size - sum(t.data_size for t in self._parent_tree._subtrees)
+        temp = self._parent_tree.data_size - \
+               sum(t.data_size for t in self._parent_tree._subtrees)
+        # yes subtrees
         if self._subtrees != []:
-            if factor * self.data_size < sum([t.data_size
-                                              for t in self._subtrees]):
-                self.data_size = int(sum([t.data_size for t in self._subtrees]))
+            comp = int(sum([t.data_size for t in self._subtrees]))
+            if int(factor * self.data_size) < comp:
+                self.data_size = comp
+        # no subtree
         else:
-            self.data_size = self.data_size + int(self.data_size * factor)
+            if self.data_size * factor < 0:
+                self.data_size = self.data_size + math.floor(self.data_size * factor)
+            else:
+                self.data_size = self.data_size + math.ceil(self.data_size * factor)
 
+        # data size too small
         if self.data_size < 1:
             self.data_size = 1
 
+        # change parent data size
         self._parent_tree.data_size = temp + sum(t.data_size for t in self._parent_tree._subtrees)
 
         # update rect
         self._parent_tree.update_rectangles(self._parent_tree.rect)
+        #self.update_rectangles(self.rect)
 
 ######################
 # subclasses of TMTree
