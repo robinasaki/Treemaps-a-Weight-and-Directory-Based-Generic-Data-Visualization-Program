@@ -417,10 +417,12 @@ class TMTree:
         >>> d2.is_displayed_tree_leaf()
         False
         """
-        if self._expanded is False:
-            if not self._parent_tree:
-                return True
-            elif self._parent_tree._expanded is True:
+        if not self._expanded:
+            if self._parent_tree:
+                if self._parent_tree._expanded:
+                    return True
+                return False
+            elif not self._parent_tree:
                 return True
         return False
 
@@ -568,7 +570,6 @@ class TMTree:
                     c += int(ratio * height)
                 self._subtrees[-1].update_rectangles((x, y + c, width, height - c))
 
-
     def get_rectangles(self) -> list[tuple[tuple[int, int, int, int],
                                            tuple[int, int, int]]]:
         """Return a list with tuples for every leaf in the displayed-tree
@@ -592,14 +593,12 @@ class TMTree:
         (0, 50, 100, 150)
         """
         # [(<rect>, <colour>), (<rect>, <colour>), ...]
-        if self.data_size == 0:
-            return []
-        elif self._subtrees == []:
-            return [(self.rect, self._colour)]
         lst = []
         for t in self._get_children():
-            tup = (t.rect, t._colour)
-            lst.append(tup)
+            if t.is_displayed_tree_leaf():
+                tup = (t.rect, t._colour)
+                lst.append(tup)
+            pass
         return lst
 
     def get_tree_at_position(self, pos: tuple[int, int]) -> Optional[TMTree]:
@@ -639,12 +638,11 @@ class TMTree:
         # <pos>: (x, y)
         # <rect>: (x, y, width, height)
         comp = {obj.rect: obj for obj in self._get_children()}
-        lst = []
         for i in comp.keys():
             if i[0] <= pos[0] <= (i[0] + i[2]) and\
                 i[1] <= pos[1] <= (i[1] + i[3]):
-                lst.append(comp[i])
-                return lst[-1]
+                if comp[i].is_displayed_tree_leaf():
+                    return comp[i]
         if self.rect[0] <= pos[0] <= (self.rect[0] + self.rect[2]) and\
             self.rect[1] <= pos[0] <= (self.rect[1] + self.rect[3]):
             return self
@@ -672,6 +670,8 @@ class TMTree:
         >>> t3.expand() is s1
         True
         >>> s1.is_displayed_tree_leaf()
+        True
+        >>> s2.is_displayed_tree_leaf()
         True
         """
         # no subtree case
@@ -714,13 +714,13 @@ class TMTree:
         >>> d2.is_displayed_tree_leaf()
         False
         """
-        if self._subtrees != []:
-            res = self._get_children()[-1]
-            self._expanded = True
-            for t in self._subtrees:
-                t.expand_all()
-            return res
-        return self
+        # no subtree case
+        if self._subtrees == []:
+            return self
+        self.expand()
+        for t in self._subtrees:
+            t.expand_all()
+        return self._get_children()[-1]
 
     def collapse(self) -> TMTree:
         """
@@ -749,11 +749,16 @@ class TMTree:
         >>> d2.is_displayed_tree_leaf()
         True
         """
-        if not self._parent_tree:
+        if self._parent_tree:
+            parent = self._parent_tree
+            parent._expanded = False
+            for t in parent._get_children():
+                t._expanded = False
+            parent.get_rectangles()
+            parent._colour = (randint(0,255), randint(0,255), randint(0,255))
+            return parent
+        else:
             return self
-        curr = self._parent_tree
-        curr._expanded = False
-        return curr
 
     def collapse_all(self) -> TMTree:
         """
@@ -777,14 +782,17 @@ class TMTree:
         >>> d3.is_displayed_tree_leaf()
         True
         """
-        root = self._get_ancestors()[-1]
-        curr = self._parent_tree
-        while curr:
-            curr._expanded = False
-            if curr._parent_tree:
-                curr = curr._parent_tree
-            else:
-                return root
+        if self._parent_tree:
+            curr = self._parent_tree
+            while curr:
+                curr.collapse()
+                if curr._parent_tree:
+                    curr = curr._parent_tree
+                    curr.get_rectangles()
+                else:
+                    curr.get_rectangles()
+                    return curr
+        return self
 
     def move(self, destination: TMTree) -> None:
         """
@@ -846,14 +854,7 @@ class TMTree:
         >>> s2.is_displayed_tree_leaf()
         True
         """
-        parent = self._parent_tree
-        parent._subtrees.remove(self)
 
-        destination._subtrees.append(self)
-        self._parent_tree = destination
-        destination._expanded = True
-        destination.data_size += self.data_size
-        parent.update_rectangles(parent.rect)
 
     def change_size(self, factor: float) -> None:
         """
