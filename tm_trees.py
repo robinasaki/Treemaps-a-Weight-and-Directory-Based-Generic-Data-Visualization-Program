@@ -145,12 +145,13 @@ def dir_tree_from_nested_tuple(obj: tuple[str, int | list]) -> DirectoryTree:
     """
     if isinstance(obj[1], list):
         t = []
-        for dir in obj[1]:
-            t.append(dir_tree_from_nested_tuple(dir))
+        for d in obj[1]:
+            t.append(dir_tree_from_nested_tuple(d))
         directory = DirectoryTree(obj[0], t)
     else:
         directory = FileTree(obj[0], [], obj[1])
     return directory
+
 
 # provided, do not modify this helper function
 def url_from_moves(moves: list[str]) -> str:
@@ -170,6 +171,7 @@ def url_from_moves(moves: list[str]) -> str:
         board.push(chess.Move.from_uci(move))
     url = 'https://lichess.org/analysis/' + board.fen().replace(' ', '_')
     return url
+
 
 def moves_to_nested_dict(moves: list[list[str]]) -> dict[tuple[str,
                                                                int], dict]:
@@ -223,8 +225,9 @@ def moves_to_nested_dict(moves: list[list[str]]) -> dict[tuple[str,
             if i == len(game) - 1:
                 # At the last move, record that one game ended with this move
                 subtree[-1] = subtree.get(-1, 0) + 1
+
     # Recursively transform the nested dictionary
-    def transform(subtree):
+    def transform(subtree: dict) -> dict:
         transformed_subtree = {}
         for move, subtree_ in subtree.items():
             count = subtree_.get(-1, 0)
@@ -236,6 +239,7 @@ def moves_to_nested_dict(moves: list[list[str]]) -> dict[tuple[str,
 ########
 # TMTree and subclasses
 ########
+
 
 class TMTree:
     """A TreeMappableTree: a tree that is compatible with the treemap
@@ -342,7 +346,7 @@ class TMTree:
         # private attributes
         self._name = name
         self._subtrees = subtrees
-        self._colour = (randint(0,255), randint(0,255), randint(0,255))
+        self._colour = (randint(0, 255), randint(0, 255), randint(0, 255))
         if self._subtrees != []:
             self._expanded = True
         else:
@@ -492,10 +496,6 @@ class TMTree:
             res += t._name + self.get_separator()
         return res + self._name + self.get_suffix()
 
-
-    # Note: you may encounter an "R0201 (no self use error)" pyTA error related
-    # to this method (and PyCharm might show a warning as well), but it should
-    # go away once you finish the assignment.
     def get_separator(self) -> str:
         """
         Return the string used to separate names in the string
@@ -590,31 +590,27 @@ class TMTree:
             if width > height:
                 c = 0
                 for subtree in self._subtrees[:-1]:
-                    # prevent zero division
-                    if subtree.data_size != 0 and self.data_size != 0:
-                        ratio = subtree.data_size / sum([t.data_size for t in self._subtrees])
-                        round(ratio)
-                    else:
-                        ratio = 0
+                    temp = sum([t.data_size for t in self._subtrees])
+                    ratio = subtree.data_size / temp
+                    round(ratio)
                     subtree.update_rectangles((x + c, y,
                                                round(ratio * width), height))
                     c += round(ratio * width)
-                self._subtrees[-1].update_rectangles((x + c, y, width - c, height))
+                self._subtrees[-1].update_rectangles(
+                    (x + c, y, width - c, height))
 
             # vertical
             else:
                 d = 0
                 for subtree in self._subtrees[:-1]:
-                    # prevent zero division
-                    if subtree.data_size != 0 and self.data_size != 0:
-                        ratio = subtree.data_size / sum([t.data_size for t in self._subtrees])
-                        round(ratio)
-                    else:
-                        ratio = 0
+                    temp = sum([t.data_size for t in self._subtrees])
+                    ratio = subtree.data_size / temp
+                    round(ratio)
                     subtree.update_rectangles((x, y + d,
                                                width, round(height * ratio)))
                     d += round(ratio * height)
-                self._subtrees[-1].update_rectangles((x, y + d, width, height - d))
+                self._subtrees[-1].update_rectangles(
+                    (x, y + d, width, height - d))
 
     def get_rectangles(self) -> list[tuple[tuple[int, int, int, int],
                                            tuple[int, int, int]]]:
@@ -687,12 +683,12 @@ class TMTree:
         # <rect>: (x, y, width, height)
         comp = {obj.rect: obj for obj in self._get_children()}
         for i in comp.keys():
-            if i[0] <= pos[0] <= (i[0] + i[2]) and\
-                i[1] <= pos[1] <= (i[1] + i[3]):
+            if i[0] <= pos[0] <= (i[0] + i[2]) \
+                    and i[1] <= pos[1] <= (i[1] + i[3]):
                 if comp[i].is_displayed_tree_leaf():
                     return comp[i]
         if self.rect[0] <= pos[0] <= (self.rect[0] + self.rect[2]) and\
-            self.rect[1] <= pos[0] <= (self.rect[1] + self.rect[3]):
+                self.rect[1] <= pos[1] <= (self.rect[1] + self.rect[3]):
             return self
         return None
 
@@ -803,10 +799,8 @@ class TMTree:
             for t in parent._get_children():
                 t._expanded = False
             parent.update_rectangles(parent.rect)
-            #parent._colour = (randint(0,255), randint(0,255), randint(0,255))
             return parent
         else:
-            #self.update_rectangles(self.rect)
             return self
 
     def collapse_all(self) -> TMTree:
@@ -906,7 +900,7 @@ class TMTree:
         if self is destination:
             return
         elif (not self.is_displayed_tree_leaf()) or\
-            (not destination.is_displayed_tree_leaf()):
+                (not destination.is_displayed_tree_leaf()):
             return
         else:
             parent = self._parent_tree
@@ -914,7 +908,8 @@ class TMTree:
             destination._subtrees.append(self)
             destination.data_size += self.data_size
             destination.expand()
-            destination._parent_tree.update_rectangles(destination._parent_tree.rect)
+            destination._parent_tree.update_rectangles(
+                destination._parent_tree.rect)
             self._parent_tree = destination
 
     def change_size(self, factor: float) -> None:
@@ -976,7 +971,7 @@ class TMTree:
         12
         """
         temp = self._parent_tree.data_size - \
-               sum(t.data_size for t in self._parent_tree._subtrees)
+            sum(t.data_size for t in self._parent_tree._subtrees)
         # yes subtrees
         if self._subtrees != []:
             # comp: int(sum of all subtrees data_size)
@@ -984,9 +979,9 @@ class TMTree:
             if factor < 0:
                 if factor + math.floor(factor * self.data_size) < comp:
                     self.data_size = comp
-                else: # >= comp
+                else:
                     self.data_size += math.floor(self.data_size * factor)
-            else: # factor > 0
+            else:
                 self.data_size += math.ceil(self.data_size * factor)
         # no subtree
         else:
@@ -1000,7 +995,8 @@ class TMTree:
             self.data_size = 1
 
         # change parent data size
-        self._parent_tree.data_size = temp + sum(t.data_size for t in self._parent_tree._subtrees)
+        self._parent_tree.data_size = temp + sum(t.data_size for t in
+                                                 self._parent_tree._subtrees)
 
         # update rect
         self._parent_tree.update_rectangles(self._parent_tree.rect)
@@ -1008,6 +1004,8 @@ class TMTree:
 ######################
 # subclasses of TMTree
 ######################
+
+
 class FileTree(TMTree):
     """
     A tree representation of a file in a file system, for use with our
@@ -1040,6 +1038,7 @@ class FileTree(TMTree):
 
     def get_separator(self) -> str:
         return '/'
+
 
 class DirectoryTree(TMTree):
     """A tree representation of a directory in a file system for use with
@@ -1129,10 +1128,10 @@ class DirectoryTree(TMTree):
             content = f'{indent * tab}{self._name}/' + \
                       f'({self.data_size}) {self.rect}'
         for t in self._subtrees:
-            if type(t) == DirectoryTree and t.data_size == 1:
+            if isinstance(t, DirectoryTree) and t.data_size == 1:
                 content += f'\n    {indent * tab}{t._name}' + \
                            f'({t.data_size}) {t.rect}'
-            elif type(t) == DirectoryTree:
+            elif isinstance(t, DirectoryTree):
                 content += f'\n    {indent * tab}{t._name}/' + \
                            f'({t.data_size}) {t.rect}'
             else:
@@ -1157,6 +1156,7 @@ class DirectoryTree(TMTree):
 
     def get_suffix(self) -> str:
         return ' (directory)'
+
 
 class ChessTree(TMTree):
     """
@@ -1203,25 +1203,24 @@ class ChessTree(TMTree):
             e2e4 | (1) None
                 e7e5(1) None
         """
-        # self.move_dict = moves_to_nested_dict(move_dict)
-        # self.last_move = last_move
-        # self.white_to_play = white_to_play
-        # self.num_games_ended = num_games_ended
-        # self._subtrees = []
-        # self._parent_tree = None
-        # self.data_size = 1
-        # self.rect = None
-        #
-        # if self._subtrees != []:
-        #     self._expanded = True
-        # else:
-        #     self._expanded = False
-        #
-        # for move, subtree in move_dict.items():
-        #     new_subtree = ChessTree(subtree, move[0], not white_to_play, move[1])
-        #     new_subtree.parent = self
-        #     self._subtrees.append(new_subtree)
-        #     self._subtrees.append(new_subtree)
+        self._white_to_play = white_to_play
+        self._subtrees = []
+        self._name = last_move
+        self._parent_tree = None
+        self.data_size = 1
+        self.rect = None
+
+        if self._subtrees == []:
+            self._expanded = False
+        else:
+            self._expanded = True
+
+        for move, subtree in move_dict.items():
+            new_subtree = ChessTree(subtree, move[0],
+                                    not white_to_play, move[1])
+            new_subtree.parent = self
+            self._subtrees.append(new_subtree)
+            self._expanded = True
 
     def get_suffix(self) -> str:
         """
@@ -1239,7 +1238,12 @@ class ChessTree(TMTree):
         >>> second_last_node.get_suffix()
         ' (black to play)'
         """
-        # TODO
+        if not self._subtrees:
+            return ' (end)'
+        elif self._white_to_play:
+            return ' (white to play)'
+        else:
+            return ' (black to play)'
 
     def open_page(self) -> None:
         """
