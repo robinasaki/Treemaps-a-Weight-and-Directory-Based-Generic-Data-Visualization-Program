@@ -104,17 +104,17 @@ def path_to_nested_tuple(path: str) -> tuple[str, int | list]:
     >>> rslt[1]
     [('images', [('Cats.pdf', 17)]), ('reading.md', 7)]
     """
+    directory = ordered_listdir(path)
     lst = []
-    if os.path.isfile(path):
-        #  if it's file return name and size
-        return os.path.basename(path), os.path.getsize(path) + 1
-    # order the path's
-    x = ordered_listdir(path)
-    ss = []
-    for i in x:
-        ith_path = os.path.join(path, i)  # getting the path for traverse
-        ss.append(path_to_nested_tuple(ith_path))
-    return (os.path.basename(path), ss)
+    for filename in directory:
+        i = os.path.join(path, filename)
+        if os.path.isdir(i):
+            lst.append(path_to_nested_tuple(i))
+        else:
+            lst.append(tuple([os.path.basename(i),
+                              1 + os.path.getsize(i)]))
+    tup = (os.path.basename(path), lst)
+    return tup
 
 
 def ordered_listdir(path: str) -> list[str]:
@@ -143,21 +143,14 @@ def dir_tree_from_nested_tuple(obj: tuple[str, int | list]) -> DirectoryTree:
 
     See the DirectoryTree's doctest examples for sample usage.
     """
-    name, contents = obj
-    tree = DirectoryTree(name)
-    tree.data_size = 1
-    for item in contents:
-        if isinstance(item[1], list):
-            subdir = dir_tree_from_nested_tuple(item)
-            tree.add_subtree(subdir)
-            tree.data_size += subdir.data_size
-        else:
-            filename, size = item
-            file_tree = FileTree(filename, size)
-            tree.add_subtree(file_tree)
-            tree.data_size += size
-    return tree
-
+    if isinstance(obj[1], list):
+        t = []
+        for dir in obj[1]:
+            t.append(dir_tree_from_nested_tuple(dir))
+        directory = DirectoryTree(obj[0], t)
+    else:
+        directory = FileTree(obj[0], [], obj[1])
+    return directory
 
 # provided, do not modify this helper function
 def url_from_moves(moves: list[str]) -> str:
@@ -992,7 +985,6 @@ class TMTree:
 
         # update rect
         self._parent_tree.update_rectangles(self._parent_tree.rect)
-        #self.update_rectangles(self.rect)
 
 ######################
 # subclasses of TMTree
@@ -1018,33 +1010,11 @@ class FileTree(TMTree):
          dir_tree_from_nested_tuple, so please make sure to implement
          that function correctly.
     """
-    name: str
-    data_size: int
-    _subtrees: list[Optional[FileTree, TMTree]]
-
-    def __init__(self, name: str, _subtrees: list[FileTree],
-                 data_size: int = 1) -> None:
-        """Initialize a new FileTree.
-        >>> t1 = FileTree('c1', [], 3)
-        >>> t1.data_size
-        3
-        >>> t1.rect is None
-        True
-        """
-        TMTree.__init__(self, name, [], data_size)
-
-    def add_subtree(self, subtree: TMTree) -> None:
-        """Add the given subtree to this tree as a child node.
-        """
-        subtree._parent_tree = self
-        self._subtrees.append(subtree)
-        self.data_size += subtree.data_size
-
-    #def change_size(self, factor: float) -> None:
-        #TMTree.change_size(factor)
-
-    #def get_path_string(self) -> str:
-        #return TMTree.get_path_string(self)
+    def move(self, destination: TMTree) -> None:
+        if isinstance(destination, FileTree):
+            raise OperationNotSupportedError
+        else:
+            TMTree.move(self, destination)
 
 class DirectoryTree(TMTree):
     """A tree representation of a directory in a file system for use with
@@ -1126,25 +1096,35 @@ class DirectoryTree(TMTree):
     >>> path_string == './empty_dir/data.xlsx (file)'.replace("/", os.path.sep)
     True
     """
-    def __init__(self, name: str) -> None:
-        """ initialize new DirectoryTree"""
-        TMTree.__init__(self, name, [], 1)
+    def __str__(self, content: str = '', indent: int = 0) -> str:
+        tab = '    '
+        if content == '':
+            content = f'{indent * tab}{self._name}/' + \
+                      f'({self.data_size}) {self.rect}'
+        for t in self._subtrees:
+            if type(t) == DirectoryTree:
+                content += f'\n{indent * tab}{t._name}/' + \
+                           f'({t.data_size}) {t.rect}'
+            else:
+                content += f'\n{indent * tab}{t._name}' + \
+                           f'({t.data_size}) {t.rect}'
+            if t._subtrees:
+                content = DirectoryTree.__str__(t, content, indent + 1)
+        content = content.replace('/', os.path.sep)
+        return content
 
-    def add_subtree(self, subtree: TMTree) -> None:
-        """
-        adds subtree to the self._subtrees
-
-        """
-        subtree._parent_tree = self
-        self._subtrees.append(subtree)
+    def get_path_string(self) -> str:
+        res = ''
+        tree_lst = reversed(self._get_ancestor())
 
     def change_size(self, factor: float) -> None:
         raise OperationNotSupportedError
 
-    def get_path_string(self) -> str:
-        lst = self._get_ancestors()
-        return TMTree.get_path_string(self)
-
+    def move(self, destination: TMTree) -> None:
+        if isinstance(destination, FileTree):
+            raise OperationNotSupportedError
+        else:
+            TMTree.move(self, destination)
 
 class ChessTree(TMTree):
     """
