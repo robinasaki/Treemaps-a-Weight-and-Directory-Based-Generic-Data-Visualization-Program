@@ -171,7 +171,6 @@ def url_from_moves(moves: list[str]) -> str:
     url = 'https://lichess.org/analysis/' + board.fen().replace(' ', '_')
     return url
 
-
 def moves_to_nested_dict(moves: list[list[str]]) -> dict[tuple[str,
                                                                int], dict]:
     """
@@ -210,8 +209,29 @@ def moves_to_nested_dict(moves: list[list[str]]) -> dict[tuple[str,
     >>> d
     {('a', 0): {('b', 1): {('c', 1): {}}}, ('d', 0): {('e', 1): {('a', 1): {}}}}
     """
-    # TODO: (Task 6) Implement this function
-
+    game_count = len(moves)
+    if game_count == 0:
+        return {}
+    # Create the root of the nested dictionary
+    root = {}
+    for game in moves:
+        subtree = root
+        for i, move in enumerate(game):
+            if move not in subtree:
+                subtree[move] = {}
+            subtree = subtree[move]
+            if i == len(game) - 1:
+                # At the last move, record that one game ended with this move
+                subtree[-1] = subtree.get(-1, 0) + 1
+    # Recursively transform the nested dictionary
+    def transform(subtree):
+        transformed_subtree = {}
+        for move, subtree_ in subtree.items():
+            count = subtree_.get(-1, 0)
+            subtree_ = {k: v for k, v in subtree_.items() if k != -1}
+            transformed_subtree[(move, count)] = transform(subtree_)
+        return transformed_subtree
+    return transform(root)
 
 ########
 # TMTree and subclasses
@@ -1144,7 +1164,6 @@ class ChessTree(TMTree):
     """
     # === Private Attributes ===
     # _white_to_play: True iff it is white's turn to make the next move.
-
     _white_to_play: bool
 
     def __init__(self, move_dict: dict[tuple[str, int], dict],
@@ -1184,7 +1203,25 @@ class ChessTree(TMTree):
             e2e4 | (1) None
                 e7e5(1) None
         """
-        # TODO: (Task 6) Implement this method
+        # self.move_dict = moves_to_nested_dict(move_dict)
+        # self.last_move = last_move
+        # self.white_to_play = white_to_play
+        # self.num_games_ended = num_games_ended
+        # self._subtrees = []
+        # self._parent_tree = None
+        # self.data_size = 1
+        # self.rect = None
+        #
+        # if self._subtrees != []:
+        #     self._expanded = True
+        # else:
+        #     self._expanded = False
+        #
+        # for move, subtree in move_dict.items():
+        #     new_subtree = ChessTree(subtree, move[0], not white_to_play, move[1])
+        #     new_subtree.parent = self
+        #     self._subtrees.append(new_subtree)
+        #     self._subtrees.append(new_subtree)
 
     def get_suffix(self) -> str:
         """
@@ -1202,7 +1239,7 @@ class ChessTree(TMTree):
         >>> second_last_node.get_suffix()
         ' (black to play)'
         """
-        # TODO: (Task 6) Implement this method
+        # TODO
 
     def open_page(self) -> None:
         """
