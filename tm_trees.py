@@ -273,7 +273,6 @@ class TMTree:
 
     See method docstrings for sample usage.
     """
-
     rect: Optional[tuple[int, int, int, int]]
     data_size: int
     _colour: tuple[int, int, int]
@@ -1010,11 +1009,17 @@ class FileTree(TMTree):
          dir_tree_from_nested_tuple, so please make sure to implement
          that function correctly.
     """
+    def get_suffix(self) -> str:
+        return ' (file)'
+
     def move(self, destination: TMTree) -> None:
         if isinstance(destination, FileTree):
             raise OperationNotSupportedError
         else:
             TMTree.move(self, destination)
+
+    def get_separator(self) -> str:
+        return '/'
 
 class DirectoryTree(TMTree):
     """A tree representation of a directory in a file system for use with
@@ -1096,26 +1101,27 @@ class DirectoryTree(TMTree):
     >>> path_string == './empty_dir/data.xlsx (file)'.replace("/", os.path.sep)
     True
     """
+    # dir_tree_from_nested_tuple works as the __init__ here
+
     def __str__(self, content: str = '', indent: int = 0) -> str:
         tab = '    '
         if content == '':
             content = f'{indent * tab}{self._name}/' + \
                       f'({self.data_size}) {self.rect}'
         for t in self._subtrees:
-            if type(t) == DirectoryTree:
-                content += f'\n{indent * tab}{t._name}/' + \
+            if type(t) == DirectoryTree and t.data_size == 1:
+                content += f'\n    {indent * tab}{t._name}' + \
+                           f'({t.data_size}) {t.rect}'
+            elif type(t) == DirectoryTree:
+                content += f'\n    {indent * tab}{t._name}/' + \
                            f'({t.data_size}) {t.rect}'
             else:
-                content += f'\n{indent * tab}{t._name}' + \
+                content += f'\n    {indent * tab}{t._name}' + \
                            f'({t.data_size}) {t.rect}'
             if t._subtrees:
                 content = DirectoryTree.__str__(t, content, indent + 1)
         content = content.replace('/', os.path.sep)
         return content
-
-    def get_path_string(self) -> str:
-        res = ''
-        tree_lst = reversed(self._get_ancestor())
 
     def change_size(self, factor: float) -> None:
         raise OperationNotSupportedError
@@ -1125,6 +1131,12 @@ class DirectoryTree(TMTree):
             raise OperationNotSupportedError
         else:
             TMTree.move(self, destination)
+
+    def get_separator(self) -> str:
+        return '/'
+
+    def get_suffix(self) -> str:
+        return ' (directory)'
 
 class ChessTree(TMTree):
     """
