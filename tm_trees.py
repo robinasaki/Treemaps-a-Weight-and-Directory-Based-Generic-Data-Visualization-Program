@@ -1203,14 +1203,12 @@ class ChessTree(TMTree):
             e2e4 | (1) None
                 e7e5(1) None
         """
+        TMTree.__init__(self, last_move, [], 1)
         self._white_to_play = white_to_play
-        self._subtrees = []
-        self._name = last_move
         self._parent_tree = None
-        self.data_size = 1
         self.rect = None
 
-        if self._subtrees == []:
+        if num_games_ended > 0:
             self._expanded = False
         else:
             self._expanded = True
@@ -1218,7 +1216,7 @@ class ChessTree(TMTree):
         for move, subtree in move_dict.items():
             new_subtree = ChessTree(subtree, move[0],
                                     not white_to_play, move[1])
-            new_subtree.parent = self
+            new_subtree._parent_tree = self
             self._subtrees.append(new_subtree)
             self._expanded = True
 
