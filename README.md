@@ -2,7 +2,7 @@
 ### Chenxu Robin Mao, Abdul Mubarak
 Winter 2023, a project of CSC148 at University of Toronto.
 
------------
+<br>
 
 ## About
 
