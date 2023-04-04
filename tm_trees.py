@@ -397,7 +397,6 @@ class TMTree:
             lst = []
             lst.extend(self._subtrees)
             for t in self._subtrees:
-                # recurse
                 lst += t._get_children()
         return lst
 
@@ -433,7 +432,6 @@ class TMTree:
         elif self._parent_tree is None:
             return self
         else:
-            # recurse
             res = self._parent_tree._get_root()
         return res
 
