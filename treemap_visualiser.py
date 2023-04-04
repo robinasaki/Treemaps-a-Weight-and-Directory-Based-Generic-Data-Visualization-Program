@@ -4,19 +4,6 @@
 Department of Computer Science,
 University of Toronto
 
-This code is provided solely for the personal and private use of
-students taking the CSC148 course at the University of Toronto.
-Copying for purposes other than this use is expressly prohibited.
-All forms of distribution of this code, whether as given or with
-any changes, are expressly prohibited.
-
-Authors: David Liu, Bogdan Simion, Diane Horton, Sophia Huynh, Tom Ginsberg,
-Jonathan Calver, Jacqueline Smith, and Misha Schwartz
-
-All of the files in this directory and all subdirectories are:
-Copyright (c) 2023 David Liu, Bogdan Simion, Diane Horton, Sophia Huynh,
-Jonathan Calver, Jacqueline Smith, and Misha Schwartz
-
 === Module Description ===
 This module contains the main program code for the treemap visualisation.
 It is responsible for initializing an instance of TMTree (using a
@@ -37,10 +24,10 @@ from tm_trees import OperationNotSupportedError
 # Screen dimensions and coordinates
 # You may adjust these values as you'd like.
 # When running the visualizer, you can also manually resize the window.
-WIDTH = 550  # 550 this size is so the worksheet demo displays nicely
-HEIGHT = 334  # 330 + FONT_OFFSET
-FONT_HEIGHT = 30  # The height of the text display.
-FONT_OFFSET = 4  # offset to (roughly) center text display
+WIDTH = 800  # 550 this size is so the worksheet demo displays nicely
+HEIGHT = 600  # 330 + FONT_OFFSET
+FONT_HEIGHT = 20  # The height of the text display.
+FONT_OFFSET = 2  # offset to (roughly) center text display
 FONT_ROWS = 1  # Initially, how many rows of text we leave room for in display
 
 # Font to use for the treemap program.
@@ -380,7 +367,7 @@ def run_treemap_chess() -> None:
     """Run a treemap visualization for chess games.
     """
     # you can choose which data set to load or make your own!
-    with open(CHESS_DATA_SETS[0]) as file:
+    with open(CHESS_DATA_SETS[2]) as file:
         chess_moves = json.load(file)
     chess_dict = moves_to_nested_dict(chess_moves)
     chess_tree = ChessTree(chess_dict)
@@ -406,7 +393,7 @@ if __name__ == '__main__':
     # Reminder, you are encouraged to modify this while trying out your code.
 
     RUN_OPTIONS = ['TMTree', 'DirectoryTree', 'ChessTree']
-    which = RUN_OPTIONS[0]
+    which = RUN_OPTIONS[2]
     # change the line above to choose which type of tree to visualize.
 
     if which == RUN_OPTIONS[0]:

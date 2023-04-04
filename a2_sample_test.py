@@ -3,26 +3,6 @@
 === CSC148 Winter 2023 ===
 Department of Computer Science,
 University of Toronto
-
-Authors: David Liu, Bogdan Simion, Diane Horton, Sophia Huynh, Tom Ginsberg,
-Jonathan Calver, Jacqueline Smith, and Misha Schwartz
-
-All of the files in this directory and all subdirectories are:
-Copyright (c) 2023 David Liu, Bogdan Simion, Diane Horton, Sophia Huynh,
-Jonathan Calver, Jacqueline Smith, and Misha Schwartz
-
-=== Module Description ===
-This module contains sample tests for Assignment 2.
-The tests use the provided example-directory.
-This test suite is _very_ small. You should plan to add to it to
-thoroughly test your code.
-
-IMPORTANT NOTES:
-    - Depending on your operating system or other system settings, you
-      may end up with incorrect results when running the provided doctests
-      and pytests that rely on the sizes of files stored on your computer.
-      Make sure to run the self-tests on MarkUs, once they are
-      posted, to confirm your code runs correctly there.
 """
 import os
 import pytest

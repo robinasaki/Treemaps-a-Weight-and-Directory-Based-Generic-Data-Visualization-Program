@@ -4,19 +4,6 @@
 Department of Computer Science,
 University of Toronto
 
-This code is provided solely for the personal and private use of
-students taking the CSC148 course at the University of Toronto.
-Copying for purposes other than this use is expressly prohibited.
-All forms of distribution of this code, whether as given or with
-any changes, are expressly prohibited.
-
-Authors: David Liu, Bogdan Simion, Diane Horton, Sophia Huynh, Tom Ginsberg,
-Jonathan Calver, Jacqueline Smith, and Misha Schwartz
-
-All of the files in this directory and all subdirectories are:
-Copyright (c) 2023 David Liu, Bogdan Simion, Diane Horton, Sophia Huynh,
-Jonathan Calver, Jacqueline Smith, and Misha Schwartz
-
 === Module Description ===
 This module contains the basic tree interface required by the treemap
 visualiser. You will both add to the TMTree class, and complete implementations
