@@ -1,4 +1,4 @@
-# Treemaps: a Weight-and-Directory Based Genertic Data Visualization Program
+# Treemaps: a Weight-and-Directory Based Generic Data Visualization Program
 ### Chenxu Robin Mao, Abdul Mubarak
 Winter 2023, a project of CSC148 at University of Toronto.
 
