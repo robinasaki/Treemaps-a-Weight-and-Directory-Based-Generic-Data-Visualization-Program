@@ -236,6 +236,7 @@ def moves_to_nested_dict(moves: list[list[str]]) -> dict[tuple[str,
         return transformed_subtree
     return transform(root)
 
+
 ########
 # TMTree and subclasses
 ########
@@ -1200,23 +1201,21 @@ class ChessTree(TMTree):
         - | (1) None
             e2e4 | (1) None
                 e7e5(1) None
+        >>> ct2 = ChessTree({('e2e4', 1) : {('e7e5', 1) : {}}})
+        >>> print(ct2)
+        - | (2) None
+            e2e4 | (2) None
+                e7e5(1) None
         """
-        TMTree.__init__(self, last_move, [], 1)
+        lst = []
         self._white_to_play = white_to_play
-        self._parent_tree = None
-        self.rect = None
-
-        if num_games_ended > 0:
-            self._expanded = False
-        else:
-            self._expanded = True
-
-        for move, subtree in move_dict.items():
-            new_subtree = ChessTree(subtree, move[0],
-                                    not white_to_play, move[1])
-            new_subtree._parent_tree = self
-            self._subtrees.append(new_subtree)
-            self._expanded = True
+        for key, value in move_dict.items():
+            if value == {}:
+                lst.append(TMTree(key[0], [], key[1]))
+            else:
+                child = ChessTree(value, key[0], not white_to_play, key[1])
+                lst.append(child)
+        TMTree.__init__(self, last_move, lst, num_games_ended)
 
     def get_suffix(self) -> str:
         """
@@ -1240,6 +1239,12 @@ class ChessTree(TMTree):
             return ' (white to play)'
         else:
             return ' (black to play)'
+
+    def change_size(self, factor: float) -> None:
+        raise OperationNotSupportedError
+
+    def move(self, destination: TMTree) -> None:
+        raise OperationNotSupportedError
 
     def open_page(self) -> None:
         """
